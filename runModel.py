@@ -2,6 +2,7 @@ from flask import Flask, request, render_template
 import pandas as pd
 import numpy as np
 import torch
+import pickle
 from transformers import TFDistilBertModel, DistilBertTokenizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -15,11 +16,11 @@ model = TFDistilBertModel.from_pretrained("DistilBERTModel", from_pt=True)
 
 # Load the logistic regression model
 lr_clf = LogisticRegression()
-lr_clf = lr_clf.load("logistic_regression_model.pkl")
+lr_clf = pickle.load(open("logistic_regression_model.pkl", "rb"))
 
 # Load the TF-IDF vectorizer
 vectorizer = TfidfVectorizer()
-vectorizer = vectorizer.load("tfidf_vectorizer.pkl")
+vectorizer = pickle.load(open("tfidf_vectorizer.pkl", "rb"))
 
 @app.route("/")
 def loadPage():
