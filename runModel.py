@@ -1,59 +1,39 @@
-from flask import Flask, request, render_template
-import pandas as pd
-import numpy as np
+from flask import Flask, request, jsonify
 import torch
-import pickle
-from transformers import TFDistilBertModel, DistilBertTokenizer
-from sklearn.linear_model import LogisticRegression
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.dummy import DummyClassifier
+from transformers import DistilBertTokenizer, TFDistilBertModel
+import tensorflow as tf
+import numpy as np
 
-app = Flask("__name__")
+app = Flask(__name__)
 
-# Load the tokenizer and model
-tokenizer = DistilBertTokenizer.from_pretrained("DistilBERTModel")
-model = TFDistilBertModel.from_pretrained("DistilBERTModel", from_pt=True)
+# Load the saved DistilBERT model
+model_path = "C:\Users\DanielC\Source\Repos\Pyrokicker468\FakeReviewPrediction\savedBertModel"
+model = tf.saved_model.load(model_path)
 
-# Load the logistic regression model
-lr_clf = LogisticRegression()
-lr_clf = pickle.load(open("logistic_regression_model.pkl", "rb"))
+# Load the tokenizer
+tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
 
-# Load the TF-IDF vectorizer
-vectorizer = TfidfVectorizer()
-vectorizer = pickle.load(open("tfidf_vectorizer.pkl", "rb"))
-
-@app.route("/")
-def loadPage():
-    return render_template('home.html')
-
-@app.route("/predict", methods=['POST'])
+# Define a route for handling fetch requests
+@app.route("/predict", methods=["POST"])
 def predict():
-    input_data = request.form['input_text']
-    
-    # Preprocess the input data using TF-IDF vectorization
-    vectorized_data = vectorizer.transform([input_data])
+    # Get the input text from the fetch request
+    data = request.get_json()
 
-    # Convert the input data to BERT-based features
-    tokenized_data = pd.Series([input_data]).apply(lambda x: tokenizer.encode(x, add_special_tokens=True))
-    padded_data = np.array([i + [0]*(max_len - len(i)) for i in tokenized_data])
+    # Preprocess the input data using the tokenizer
+    tokenized_data = tokenizer.encode(data["text"], add_special_tokens=True)
+    padded_data = np.array([tokenized_data + [0] * (512 - len(tokenized_data))])
     attention_mask_data = np.where(padded_data != 0, 1, 0)
     input_ids_data = torch.tensor(padded_data)
     attention_mask_data = torch.tensor(attention_mask_data)
 
-    with torch.no_grad():
-        last_hidden_states_data = model(input_ids_data, attention_mask=attention_mask_data)
+    # Pass the input through the loaded model
+    outputs = model(input_ids_data, attention_mask=attention_mask_data)
 
-    features_data = last_hidden_states_data[0][:, 0, :].numpy()
+    # Get the predicted class
+    prediction = outputs[0].numpy().argmax()
 
-    # Predict using the Logistic Regression model
-    prediction = lr_clf.predict(features_data)[0]
-    
-    if prediction == 1:
-        output = "Positive"
-    else:
-        output = "Negative"
-
-    return render_template('home.html', input_data=input_data, output=output)
+    # Return the predicted class as a JSON response
+    return jsonify({"prediction": prediction})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
