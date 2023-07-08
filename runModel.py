@@ -5,9 +5,9 @@ import tensorflow as tf
 import numpy as np
 
 app = Flask(__name__)
-
+print("Hello")
 # Load the saved DistilBERT model
-model_path = "C:\Users\DanielC\Source\Repos\Pyrokicker468\FakeReviewPrediction\savedBertModel"
+model_path = r"C:\Users\DanielC\Source\Repos\Pyrokicker468\FakeReviewPrediction\savedBertModel"
 model = tf.saved_model.load(model_path)
 
 # Load the tokenizer
