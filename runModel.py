@@ -34,7 +34,7 @@ def predict():
     prediction = outputs[0].numpy().argmax()
 
     # Return the predicted class as a JSON response
-    return jsonify({"prediction"})
+    return jsonify({"prediction: 0"})
     # return jsonify({"prediction": prediction})
 
 if __name__ == "__main__":
