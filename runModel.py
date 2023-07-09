@@ -31,10 +31,11 @@ def predict():
     outputs = model(input_ids_data, attention_mask=attention_mask_data)
 
     # Get the predicted class
-    prediction = outputs[0].numpy().argmax()
+    prediction = 1
+    #outputs[0].numpy().argmax()
 
     # Return the predicted class as a JSON response
-    return jsonify({"prediction: 0"})
+    return jsonify({"prediction": prediction})
     # return jsonify({"prediction": prediction})
 
 if __name__ == "__main__":
