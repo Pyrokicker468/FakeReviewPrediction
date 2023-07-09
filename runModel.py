@@ -14,7 +14,7 @@ model = tf.saved_model.load(model_path)
 tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
 
 # Define a route for handling fetch requests
-@app.route('/predict', methods=['POST'])
+@app.route("/predict", methods=["POST"])
 def predict():
     print("Hello")
     # Get the input text from the fetch request
